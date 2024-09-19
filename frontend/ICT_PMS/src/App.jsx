@@ -36,12 +36,28 @@ function FuncComp(props) { // 자기 자신이 render 함수
   useEffect(() => {
     console.log("%cfunc => useEffect (componentDidMount & componentDidUpdate) A"+(++funcId), funcStyle);
     document.title = number + ' : ' + _date;
-  })
+    return function() {  // clean up
+      console.log('%cfunc => useEffect number return (componentDidMount & componentDidUpdate) A'+(++funcId), funcStyle)
+    }
+  }, [number])   // , [변수] : 해당 변수가 변경될 때만 실행하도록 처리
 
   useEffect(() => {
     console.log("%cfunc => useEffect (componentDidMount & componentDidUpdate) B"+(++funcId), funcStyle);
     document.title = number + ' : ' + _date;
-  })
+    return function() {  // clean up
+      console.log('%cfunc => useEffect _date return (componentDidMount & componentDidUpdate) A'+(++funcId), funcStyle)
+    }
+  }, [_date])
+
+  // componentDidMount를 componentDidUpdate와 분리 실행
+  useEffect(() => {
+    console.log("%cfunc => useEffect (componentDidMount) C"+(++funcId), funcStyle);
+    document.title = number + ' : ' + _date;
+    return function() {  // clean up
+      console.log('%cfunc => useEffect return (componentWillUnMount) C'+(++funcId), funcStyle) // 컴포넌트 소멸 시 1회 실행
+    }
+  }, []) // 빈 배열을 넣으면 1회는 실행되고 그 이후에는 실행되지 않음 (즉, 최초 생성 시에만 실행)
+
 
   console.log('%cfunc => render'+(++funcId), funcStyle);
 
@@ -76,6 +92,11 @@ class ClassComp extends React.Component{  // render 메서드를 활용
     console.log("%cclass => shouldComponentUpdate", classStyle);
     return true;
   }
+
+  componentWillUnmount() {
+    console.log('%cclass => componentWillUnmount', classStyle);
+  }  // 컴포넌트 소멸 시 1회 실행
+
 
   render() {
     console.log("%cclass => render", classStyle);
