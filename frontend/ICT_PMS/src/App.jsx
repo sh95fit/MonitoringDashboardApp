@@ -5,6 +5,7 @@ import Nav from './components/Navbar'
 import ReadContent from './components/ReadContent'
 import Create from './components/Create'
 import CreateContent from './components/CreateContent'
+import UpdateContent from './components/UpdateContent'
 import './App.css'
 
 
@@ -26,24 +27,39 @@ class App extends Component {
     }
   }
 
-  render() {
+  getReadContent() {
+    var i = 0;
+    while(i<this.state.contents.length){
+      var data = this.state.contents[i];
+      if(data.id === this.state.selected_content_id) {
+        return data;
+        break;
+      }
+      i = i + 1;
+    }
+  }
+
+  getContent() {
     var _title, _desc, _content = null;
     if(this.state.mode === 'homepage') {
       _title = this.state.homepage.title;
       _desc = this.state.homepage.desc;
       _content = <ReadContent title={_title} desc={_desc}></ReadContent>
     } else if(this.state.mode === 'read'){
-      var i = 0;
-      while(i<this.state.contents.length){
-        var data = this.state.contents[i];
-        if(data.id === this.state.selected_content_id) {
-          _title = data.title;
-          _desc = data.desc;
-          break;
-        }
-        i = i + 1;
-      }
-      _content = <ReadContent title={_title} desc={_desc}></ReadContent>
+      // var i = 0;
+      // while(i<this.state.contents.length){
+      //   var data = this.state.contents[i];
+      //   if(data.id === this.state.selected_content_id) {
+      //     _title = data.title;
+      //     _desc = data.desc;
+      //     break;
+      //   }
+      //   i = i + 1;
+      // }
+      var _read = this.getReadContent();
+      _content = <ReadContent title={_read.title} desc={_read.desc}></ReadContent>
+
+      // _content = <ReadContent title={_title} desc={_desc}></ReadContent>
     } else if(this.state.mode === 'create'){
       _content = <CreateContent onSubmit={function(_title, _desc){
         // console.log(_title, _desc)
@@ -64,12 +80,41 @@ class App extends Component {
         _content.push({id:this.max_content_id, title:_title, desc:_desc});
 
         this.setState({
-          contents:_content
+          contents:_content,
+          mode: 'read',
+          selected_content_id: this.max_content_id
         })
 
 
       }.bind(this)}></CreateContent>
+    } else if(this.state.mode === 'update'){
+      _read = this.getReadContent();
+      _content = <UpdateContent data={_read} onSubmit={function(_id, _title, _desc){
+        var _content = Array.from(this.state.contents);
+        var i = 0 ;
+        while(i < _content.length){
+          if(_content[i].id === _id) {
+            _content[i] = {id:_id, title:_title, desc:_desc};
+            break;
+          }
+          i = i + 1;
+        }
+
+
+        this.setState({
+          contents:_content,
+          mode: 'read'
+        })
+
+
+      }.bind(this)}></UpdateContent>
     }
+    return _content;
+  }
+
+  render() {
+
+
 
 
     return (
@@ -92,7 +137,7 @@ class App extends Component {
             mode: mode
           })
         }.bind(this)}></Create>
-        { _content }
+        { this.getContent() }
       </div>
     );
   }
