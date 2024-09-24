@@ -133,9 +133,28 @@ class App extends Component {
           })
         }.bind(this)}></Nav>
         <Create onChangeMode ={function(mode) {
-          this.setState({
-            mode: mode
-          })
+          if(mode === "delete"){
+            if(window.confirm("Are you sure you want to delete it?")){
+              var _contents = Array.from(this.state.contents);
+              var i = 0;
+              while(i<this.state.contents.length){
+                if(_contents[i].id === this.state.selected_content_id){
+                  _contents.splice(i,1);
+                  break
+                }
+                i = i + 1
+              }
+              this.setState({
+                mode:"homepage",
+                contents:_contents
+              })
+              alert('delete success!')
+            }
+          } else {
+            this.setState({
+              mode: mode
+            })
+          }
         }.bind(this)}></Create>
         { this.getContent() }
       </div>

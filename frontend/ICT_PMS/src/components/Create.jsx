@@ -15,7 +15,7 @@ class Create extends Component {
         <li><input type="button" value='delete' onClick={function(e){
           e.preventDefault();
           this.props.onChangeMode('delete');
-        }}></input></li>
+        }.bind(this)}></input></li>
       </ul>
     )
   }
