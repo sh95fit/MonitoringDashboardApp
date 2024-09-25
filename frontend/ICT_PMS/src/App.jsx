@@ -1,177 +1,239 @@
-// import React, { useState, useEffect } from 'react'
-import React, { Component } from 'react'
-import Subject from './components/Subject'
-import Nav from './components/Navbar'
-import ReadContent from './components/ReadContent'
-import Create from './components/Create'
-import CreateContent from './components/CreateContent'
-import UpdateContent from './components/UpdateContent'
+import React, { useState, useEffect } from 'react'
 import './App.css'
 
-
-class App extends Component {
-  // render보다 먼저 실행되면서 컴포넌트를 초기화해주는 역할
-  constructor(props){
-    super(props);
-    this.max_content_id = 3;
-    this.state = {
-      mode: "homepage",
-      selected_content_id:1,
-      subject:{title:"React Refresh", sub:"react environment analysis"},
-      homepage:{title:"React Master", desc:"react environment analysis"},
-      contents: [
-        {id:1, title:'HTML', desc:"HTML is for information"},
-        {id:2, title:'CSS', desc:"CSS is for design"},
-        {id:3, title:'JavaScript', desc:"JavaScript is for interactive"},
-      ]
-    }
-  }
-
-  getReadContent() {
-    var i = 0;
-    while(i<this.state.contents.length){
-      var data = this.state.contents[i];
-      if(data.id === this.state.selected_content_id) {
-        return data;
-        break;
-      }
-      i = i + 1;
-    }
-  }
-
-  getContent() {
-    var _title, _desc, _content = null;
-    if(this.state.mode === 'homepage') {
-      _title = this.state.homepage.title;
-      _desc = this.state.homepage.desc;
-      _content = <ReadContent title={_title} desc={_desc}></ReadContent>
-    } else if(this.state.mode === 'read'){
-      // var i = 0;
-      // while(i<this.state.contents.length){
-      //   var data = this.state.contents[i];
-      //   if(data.id === this.state.selected_content_id) {
-      //     _title = data.title;
-      //     _desc = data.desc;
-      //     break;
-      //   }
-      //   i = i + 1;
-      // }
-      var _read = this.getReadContent();
-      _content = <ReadContent title={_read.title} desc={_read.desc}></ReadContent>
-
-      // _content = <ReadContent title={_title} desc={_desc}></ReadContent>
-    } else if(this.state.mode === 'create'){
-      _content = <CreateContent onSubmit={function(_title, _desc){
-        // console.log(_title, _desc)
-        this.max_content_id = this.max_content_id+1;
-
-        // 원본을 수정하지 않는다 == 불변 (immutable)
-
-
-        // push는 원본을 변경시킨다
-        // this.state.contents.push({id:this.max_content_id, title:_title, desc:_desc});
-
-        // concat : 원본을 그대로 두고 복제해서 변경시킨다.
-        // var _content = this.state.contents.concat({id:this.max_content_id, title:_title, desc:_desc});
-
-        // Array.from(배열) : 배열 복제      // 객체를 복제하고 싶은 경우 : Object.assign({},객체);
-        // Immutable을 활용하여 원본을 유지하고 복제본을 활용하는 방법도 유효
-        var _content = Array.from(this.state.contents);
-        _content.push({id:this.max_content_id, title:_title, desc:_desc});
-
-        this.setState({
-          contents:_content,
-          mode: 'read',
-          selected_content_id: this.max_content_id
-        })
-
-
-      }.bind(this)}></CreateContent>
-    } else if(this.state.mode === 'update'){
-      _read = this.getReadContent();
-      _content = <UpdateContent data={_read} onSubmit={function(_id, _title, _desc){
-        var _content = Array.from(this.state.contents);
-        var i = 0 ;
-        while(i < _content.length){
-          if(_content[i].id === _id) {
-            _content[i] = {id:_id, title:_title, desc:_desc};
-            break;
-          }
-          i = i + 1;
-        }
-
-
-        this.setState({
-          contents:_content,
-          mode: 'read'
-        })
-
-
-      }.bind(this)}></UpdateContent>
-    }
-    return _content;
-  }
-
-  render() {
-
-
-
-
-    return (
-      <div className='container'>
-        <Subject
-          title={this.state.subject.title}
-          sub={this.state.subject.sub}
-          onChangePage={function(){
-            this.setState({mode:'homepage'});  // 원본을 변경한 것
-          }.bind(this)}
-        ></Subject>
-        <Nav data={this.state.contents} onChangePage={function(id){
-          this.setState({
-            mode:'read',
-            selected_content_id:Number(id)
-          })
-        }.bind(this)}></Nav>
-        <Create onChangeMode ={function(mode) {
-          if(mode === "delete"){
-            if(window.confirm("Are you sure you want to delete it?")){
-              var _contents = Array.from(this.state.contents);
-              var i = 0;
-              while(i<this.state.contents.length){
-                if(_contents[i].id === this.state.selected_content_id){
-                  _contents.splice(i,1);
-                  break
-                }
-                i = i + 1
-              }
-              this.setState({
-                mode:"homepage",
-                contents:_contents
-              })
-              alert('delete success!')
-            }
-          } else {
-            this.setState({
-              mode: mode
-            })
-          }
-        }.bind(this)}></Create>
-        { this.getContent() }
-      </div>
-    );
-  }
+function Header(props) {
+  return <header>
+    <h1><a href="/" onClick={(e)=>{
+      e.preventDefault();
+      props.onChangeMode();
+    }}>{props.title}</a></h1>
+  </header>
 }
 
-export default App;
+function Nav(props) {
+
+  // for문을 이용한 방법
+  const lis = []
+  for(let i=0; i<props.topics.length; i++){
+    let t = props.topics[i];
+    lis.push(<li key={t.id}><a id={t.id} href={"/read/"+t.id} onClick={(e)=>{
+      e.preventDefault();
+      props.onChangeMode(e.target.id)
+    }}>{t.title}</a></li>)
+  }
 
 
-// Props vs State
+  // map을 이용한 방법
+  const topics = props.topics
+  const liList = topics.map((topic) =>
+    <li key={topic.id}><a id={topic.id} href={"/read/"+topic.id} onClick={(e)=>{
+      e.preventDefault();
+      props.onChangeMode(topic.id);
 
-// Props : read-only, can not be modified
-// State : change can be asynchronous, can be modified using this.setState
+      // 숫자형이 태그로 적용되면 문자형으로 변경되므로 주의!  (Number함수를 적용하거나 위 방식 사용)
+      // props.onChangeMode(e.target.id);
+    }}>{topic.title}</a></li>
+  )
 
-// 컴포넌트 내에서의 props 수정은 불가능하다
-// 컴포넌트 외부에서는 props 값을 수정할 수 있다
+  return <nav>
+    <ol>
+      {liList}
+      {/* {lis} */}
+    </ol>
+  </nav>
+}
 
-// 두 값의 변화는 render 함수 호출을 유발한다 (UI 변경 시 적절히 사용)
+function Article(props) {
+  return <article>
+    <h2>{props.title}</h2>
+    {props.body}
+  </article>
+}
 
+function CreateContent(props){
+  const [values, setValues] = useState({
+    name:"",
+    content:"",
+  })
+
+  const handleChange = (e) => {
+    setValues({
+      ...values,
+      [e.target.id]:e.target.value,
+    })
+  }
+
+  return <form onSubmit={(e)=>{
+    e.preventDefault();
+    // console.log(values)
+    props.onCreate(values)
+  }}>
+    <h2>Create</h2>
+    <p><input type="text" id="name" placeholder='name' onChange={handleChange}></input></p>
+    <p><textarea name="body" id="content" placeholder='body' onChange={handleChange}></textarea></p>
+    <p><button type="submit">생성</button></p>
+  </form>
+}
+
+function UpdateContent(props){
+  // const topics = props.data
+  // const sid = props.id
+
+  // var topic = []
+  // var i = 0;
+  // while(i < topics.length){
+  //   if(topics[i].id === sid){
+  //     topic = topics[i]
+  //   }
+  //   i = i + 1
+  // }
+
+  const {data : topics, id : sid} = props;
+
+  const topic = topics.find(topic => topic.id === sid) || {title: '', body: ''};
+
+  const [values, setValues] = useState({
+    name:topic.title,
+    content:topic.body,
+  })
+
+  useEffect(() => {
+    setValues({
+      name:topic.title,
+      content:topic.body
+    });
+  }, [sid, topic])
+
+  const handleChange = (e) => {
+    setValues({
+      ...values,
+      [e.target.id]:e.target.value,
+    })
+  }
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    props.onUpdate(values);
+  }
+
+  return <form onSubmit={handleSubmit}>
+    <h2>Update</h2>
+    <p><input type="text" id="name" placeholder='name' onChange={handleChange} value={values.name}></input></p>
+    <p><textarea name="body" id="content" placeholder='body' onChange={handleChange} value={values.content}></textarea></p>
+    <p><button type="submit">수정</button></p>
+  </form>
+}
+
+
+
+function App() {
+  const [mode, setMode] = useState("Homepage");
+  const [sid, setSid] = useState(null);
+  const [maxid, setMaxid] = useState(3);
+  const [topics, setTopics] = useState([
+    {id:1, title:"html", body:"HTML is ..."},
+    {id:2, title:"css", body:"CSS is ..."},
+    {id:3, title:"javascript", body:"JAVASCRIPT is ..."},
+  ])
+
+  let content = null;
+  let update = null;
+  let delete_tag = null;
+
+  if(mode === "Homepage"){
+    content = <Article title="React" body="This Web is React Practice"></Article>
+  } else if (mode === "Read"){
+
+    update = <a href={"/update/"+ sid} onClick={(e)=>{
+      e.preventDefault();
+      setMode("Update");
+    }}>Update</a>
+
+    delete_tag = <input type="button" value='delete' onClick={function(e){
+      e.preventDefault();
+      setMode("Delete");
+    }}></input>
+
+    // for문을 사용하는 경우
+    for(let i=0; i<topics.length; i++){
+      if(topics[i].id === sid) {
+        content = <Article title={topics[i].title} body={topics[i].body}></Article>
+      }
+    }
+
+    // 직접 props 값을 적용하는 경우
+    // content = <Article title={topics[sid].title} body={topics[sid].body}></Article>
+  } else if (mode === "Create") {
+    content = <CreateContent onCreate={(values)=>{
+      const max_content_id = maxid+1;
+
+      var _content = Array.from(topics);
+      _content.push({id:max_content_id, title:values.name, body:values.content});
+
+      setTopics(_content);
+      setMaxid(max_content_id);
+      setSid(max_content_id);
+      setMode("Read");
+    }}></CreateContent>
+  } else if (mode === "Update") {
+    content = <UpdateContent data={topics} id={sid} onUpdate={(values)=>{
+      // var _content = Array.from(topics);
+
+      // var i = 0;
+
+      // while(i < _content.length) {
+      //   if(_content[i].id === sid) {
+      //     _content[i] = {id:sid, title:values.name, body:values.content};
+      //     break
+      //   }
+      //   i = i+1
+      // }
+
+      const _content = topics.map((topic) => {
+        return (topic.id === sid ? {id:sid, title:values.name, body:values.content} : topic)
+      })
+
+      setTopics(_content);
+      // setSid(sid);
+      setMode("Read");
+    }}>
+    </UpdateContent>
+  } else if (mode === 'Delete') {
+    if(window.confirm("Are you sure you want to delete it?")){
+      const _content = topics.filter(topic => topic.id !== sid);
+
+      setTopics(_content);
+      setMode("Homepage");
+    }
+  }
+
+  return (
+    <div className='container'>
+      <Header title="React" onChangeMode={function(){
+        // alert("Header");
+        setMode("Homepage");
+      }}></Header>
+      <Nav topics={topics} onChangeMode={(_id)=>{
+        // alert(id)
+        setMode("Read");
+
+        // for문을 활용하는 경우
+        setSid(_id);
+
+        // 직접 topics props 값을 적용하는 경우
+        // setSid(_id-1);
+      }}></Nav>
+      {content}
+
+      <a href="/create" onClick={(e)=> {
+        e.preventDefault();
+        setMode("Create");
+      }}>Create</a>
+
+      {update}
+      {delete_tag}
+    </div>
+  )
+}
+
+export default App
