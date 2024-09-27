@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
-import AddNumber from "./AddNumber";
+// import AddNumber from "./AddNumber";
+import AddNumberContainer from '../containers/AddNumberContainer';
 
 class AddNumberRoot extends Component {
   render() {
@@ -9,7 +10,11 @@ class AddNumberRoot extends Component {
         {/* <AddNumber onClick={function(size) {
           this.props.onClick(size);
         }.bind(this)}></AddNumber> */}
-        <AddNumber></AddNumber>
+
+
+        {/* <AddNumber></AddNumber> */}
+
+        <AddNumberContainer></AddNumberContainer>
       </div>
     )
   }
