@@ -3,7 +3,7 @@ import React from 'react'
 import './App.css'
 import LoginForm from './pages/LoginPage'
 import Aggrid from './components/ag_grid'
-import Sidebar from './pages/Sidebar'
+import Sidebar from './components/Sidebar'
 
 function App() {
 
